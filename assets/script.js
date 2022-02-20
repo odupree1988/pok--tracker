@@ -1,4 +1,4 @@
-const bodyEl = document.querySelector("body");
+const pokémonImageEl = document.getElementById("pokémon-image");
 const previousEl = document.getElementById("previous");
 const nextEl = document.getElementById("next");
 
@@ -7,19 +7,7 @@ let nextUrl = "";
 pokédex = () => {
   const url = "https://pokeapi.co/api/v2/pokemon";
 
-  fetch(url)
-    .then((response) => {
-      // The API call was successful
-      if (response.ok) {
-        return response.json();
-        // Return error if was not successful
-      } else {
-        return Promise.reject(response);
-      }
-    })
-    .then((data) => {
-      iteratePokémon(data);
-    });
+  pokémonFetch(url);
 };
 
 iteratePokémon = (data) => {
@@ -45,20 +33,22 @@ iteratePokémon = (data) => {
         for (let i = 0; i < pokéList.length; i++) {
           let pokémonImg = pokéList[i].sprites.front_default;
 
+          imageEl.setAttribute("id", "pokémon-image");
           imageEl.setAttribute("src", pokémonImg);
 
           divEl.append(imageEl);
-          bodyEl.append(divEl);
+          pokémonImageEl.append(divEl);
         }
       });
   }
 };
 
 nextEl.addEventListener("click", () => {
-  res(nextUrl)
+  pokémonImageEl.innerHTML = "";
+  pokémonFetch(nextUrl);
 });
 
-res = (data) => {
+pokémonFetch = (data) => {
   fetch(data)
     .then((response) => {
       if (response.ok) {
