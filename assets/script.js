@@ -3,6 +3,7 @@ const previousEl = document.getElementById("previous");
 const nextEl = document.getElementById("next");
 
 let nextUrl = "";
+let previousUrl = null;
 let resultParamStart = 0;
 
 pokédex = () => {
@@ -12,6 +13,7 @@ pokédex = () => {
 };
 
 pokémonFetch = (data) => {
+  console.log(previousUrl);
   fetch(data)
     .then((response) => {
       if (response.ok) {
@@ -25,11 +27,20 @@ pokémonFetch = (data) => {
     });
 };
 
+//iterates through each url from first api fetch
 async function iteratePokémon(data) {
   nextUrl = data.next;
+  previousUrl = data.previous;
   resultParamStart += 9;
 
   let pokéList = [];
+
+  //hide prev button if previousUrl is null
+  if (previousUrl == null) {
+    previousEl.style.display = "none";
+  } else {
+    previousEl.style.display = "";
+  }
 
   for (let i = 0; i < data.results.length; i++) {
     await fetch(data.results[i].url)
@@ -96,5 +107,20 @@ nextEl.addEventListener("click", () => {
   pokémonImageEl.innerHTML = "";
   pokémonFetch(`${nextUrl}?offset=${resultParamStart}&limit=9`);
 });
+
+previousEl.addEventListener("click", () => {
+  pokémonImageEl.innerHTML = "";
+  pokémonFetch(`${previousUrl}`);
+});
+
+numClick = (e) => {
+  e.preventDefault();
+  pokémonImageEl.innerHTML = "";
+  pokémonFetch(
+    `https://pokeapi.co/api/v2/pokemon?offset=${
+      9 * (e.target.textContent - 1)
+    }&limit=9`
+  );
+};
 
 pokédex();
