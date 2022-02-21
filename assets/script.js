@@ -13,51 +13,24 @@ pokédex = () => {
 };
 
 pokémonFetch = (data) => {
-  console.log(previousUrl);
   fetch(data)
-    .then((response) => {
-      if (response.ok) {
-        return response.json();
-      } else {
-        return Promise.reject(response);
-      }
+    .then(response => response.ok ? response.json() : Promise.reject(response))
+    .then(data => {
+      // Hide prev button if previousUrl is null.
+      previousEl.style.display = (data.previous == null) ? "none" : "";
+      resultParamStart += 9;
+
+      return data;
     })
-    .then((data) => {
-      iteratePokémon(data);
-    });
+    .then(data => getPokéDetails(data.results))
+    .then(data => data.map(pokéDetail => createCard(pokéDetail)));
 };
 
-//iterates through each url from first api fetch
-async function iteratePokémon(data) {
-  nextUrl = data.next;
-  previousUrl = data.previous;
-  resultParamStart += 9;
-
-  let pokéList = [];
-
-  //hide prev button if previousUrl is null
-  if (previousUrl == null) {
-    previousEl.style.display = "none";
-  } else {
-    previousEl.style.display = "";
-  }
-
-  for (let i = 0; i < data.results.length; i++) {
-    await fetch(data.results[i].url)
-      .then((response) => {
-        if (response.ok) {
-          return response.json();
-        } else {
-          return Promise.reject(response);
-        }
-      })
-      .then((data) => {
-        pokéList.push(data);
-
-        createCard(pokéList);
-      });
-  }
-}
+// Iterates through each url from first API fetch.
+getPokéDetails = (pokémons) => Promise.all(pokémons.map(pokémon => fetch(pokémon.url)
+    .then(response => response.ok ? response.json() : Promise.reject(response))
+  ))
+  .then(data => data);
 
 createCard = (data) => {
   gridEl = document.createElement("div");
@@ -66,35 +39,32 @@ createCard = (data) => {
   cardBodyEl = document.createElement("div");
   pEl = document.createElement("p");
 
-  for (let i = 0; i < data.length; i++) {
-    let pokémonImg = data[i].sprites.other["official-artwork"].front_default;
+  let pokémonImg = data.sprites.other["official-artwork"].front_default;
 
-    let cardAttributes = [
-      {
-        class: "card",
-        style: "width: 18rem",
-      },
-      {
-        class: "card-img-top",
-        src: pokémonImg,
-        alt: "",
-      },
-    ];
+  let cardAttributes = [
+    {
+      class: "card",
+      style: "width: 18rem",
+    },
+    {
+      class: "card-img-top",
+      src: pokémonImg,
+      alt: "",
+    },
+  ];
 
-    gridEl.setAttribute("class", "col-xs-4 m-1");
-    setAttributes(cardEl, cardAttributes[0]);
-    setAttributes(imgEl, cardAttributes[1]);
-    cardBodyEl.setAttribute("class", "card-body");
-    pEl.setAttribute("class", "card-text");
-    pEl.innerHTML =
-      data[i].name.charAt(0).toUpperCase() + data[i].name.slice(1);
+  gridEl.setAttribute("class", "col-xs-4 m-1");
+  setAttributes(cardEl, cardAttributes[0]);
+  setAttributes(imgEl, cardAttributes[1]);
+  cardBodyEl.setAttribute("class", "card-body");
+  pEl.setAttribute("class", "card-text");
+  pEl.innerHTML = data.name.charAt(0).toUpperCase() + data.name.slice(1);
 
-    cardBodyEl.append(pEl);
-    cardEl.append(imgEl);
-    cardEl.append(cardBodyEl);
-    gridEl.append(cardEl);
-    pokémonImageEl.append(gridEl);
-  }
+  cardBodyEl.append(pEl);
+  cardEl.append(imgEl);
+  cardEl.append(cardBodyEl);
+  gridEl.append(cardEl);
+  pokémonImageEl.append(gridEl);
 };
 
 setAttributes = (element, attributes) => {
